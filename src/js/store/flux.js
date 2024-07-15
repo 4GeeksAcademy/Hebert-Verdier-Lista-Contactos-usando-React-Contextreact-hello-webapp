@@ -1,20 +1,9 @@
 const getState = ({ getStore, getActions, setStore }) => {
 	return {
 		store: {
-			demo: [
-				{
-					title: "FIRST",
-					background: "white",
-					initial: "white"
-				},
-				{
-					title: "SECOND",
-					background: "white",
-					initial: "white"
-				}
-			],
-			contactList: null,
+			contactList: [],
 		},
+
 		actions: {
 			// Use getActions to call a function within a fuction
 			exampleFunction: () => {
@@ -25,70 +14,75 @@ const getState = ({ getStore, getActions, setStore }) => {
 					fetch().then().then(data => setStore({ "foo": data.bar }))
 				*/
 			},
-
-			changeColor: (index, color) => {
-				//get the store
-				const store = getStore();
-
-				//we have to loop the entire demo array to look for the respective index
-				//and change its color
-				const demo = store.demo.map((elm, i) => {
-					if (i === index) elm.background = color;
-					return elm;
-				});
-
-				//reset the global store
-				setStore({ demo: demo });
-			},
-			//AGREGAR CONTACTO
-			agregarContacto: (contact) => {
-				fetch('https://playground.4geeks.com/contact/agendas/HSimonVS/contacts', {
+			//CREAR AGENDA
+			crearAgenda: () => {
+				fetch('https://playground.4geeks.com/contact/agendas/HSimonVS', {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json'
 					},
-					body: JSON.stringify({
-						"name": contact.name,
-						"phone": contact.phone,
-						"email": contact.email,
-						"address": contact.address
-
-					})
 				})
 					.then((response) => {
 						console.log(response);
-						if (response.status === 201) {
-							traerTareas()
-						}
 						return response.json()
 					})
 
 					.then((data) => console.log(data))
 					.catch((error) => console.log(error))
 			},
-			// ACTUALIZAR CONTACTO
-			actualizarContacto: (id, contact) => {
-				fetch(`https://playground.4geeks.com/contact/agendas/HSimonVS/contacts/${id}`, {
-					method: 'PUT',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						"name": contact.name,
-						"phone": contact.phone,
-						"email": contact.email,
-						"address": contact.address
+			//AGREGAR CONTACTO
+			agregarContacto: (name, phone, email, address) => {
+				if (name != '', phone != '', email != '', address != '') {
+					fetch('https://playground.4geeks.com/contact/agendas/HSimonVS/contacts', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							"name": name,
+							"phone": phone,
+							"email": email,
+							"address": address
 
+						})
 					})
 						.then((response) => {
+							console.log(response);
+							return response.json()
+						})
+
+						.then((data) => console.log(data))
+						.catch((error) => console.log(error))
+				}
+			},
+
+			// ACTUALIZAR CONTACTO
+			actualizarContacto: (id, name, phone, email, address) => {
+				let actions = getActions();
+				if (name != '', phone != '', email != '', address != '') {
+					fetch(`https://playground.4geeks.com/contact/agendas/HSimonVS/contacts/${id}`, {
+						method: 'PUT',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							"name": name,
+							"phone": phone,
+							"email": email,
+							"address": address
+						})
+					})
+						.then((response) => {
+							console.log(response);
 							if (response.status === 200) {
-								traerContactos()
+								actions.traerContactos()
 							}
 							return response.json()
 						})
+
 						.then((data) => console.log(data))
 						.catch((error) => console.log(error))
-				})
+				}
 			},
 			//TRAER CONTACTOS
 			traerContactos: () => {
@@ -102,7 +96,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 				})
 					.then((response) => {
 						if (response.status == '404') {
-							// crearAgenda()
+							actions.crearAgenda()
 							console.log('no se obtuvo la agenda');
 							return [];
 						}
